@@ -3,10 +3,11 @@
 #include <ostream>
 #include <limits.h>
 #include <iomanip>
-
+#include <string>
 #include <iostream>
 
 unsigned long long upperBound = 10000000000000000;
+int bigDecimalLen = 16;
 
 class bigDecimal{
   private:
@@ -14,6 +15,21 @@ class bigDecimal{
 
   public:
     bigDecimal() {}
+
+    //split string in reverse into chunks and store them
+    bigDecimal(std::string number) {
+      int border = number.length();
+      int elems = border / bigDecimalLen;
+      unsigned long long num;
+      int i = 0;
+      while(i < elems) {
+        num = std::stoull(number.substr(border-(i+1)*bigDecimalLen,bigDecimalLen));
+        dec.push_back(num);
+        i+=1;
+      }
+      num = std::stoull(number.substr(0, border-i*bigDecimalLen));
+      dec.push_back(num);
+    }
 
     bigDecimal(unsigned long long num) {
       unsigned long long offset, sum;
@@ -78,7 +94,7 @@ class bigDecimal{
 std::ostream & operator<<(std::ostream &os, bigDecimal &b) {
       os << b.get(b.length() - 1);
       for (int i = b.length() - 2; i >= 0; i--) {
-        os << std::setfill('0') << std::setw(16) << b.get(i);
+        os << std::setfill('0') << std::setw(bigDecimalLen) << b.get(i);
       }
       return os;
 }
