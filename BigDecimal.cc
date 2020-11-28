@@ -43,6 +43,14 @@ class bigDecimal{
       }
     }
 
+    bigDecimal(std::vector<unsigned long long> dec) {
+      this->dec = dec;
+    }
+
+    bigDecimal clone() {
+      return bigDecimal(this->dec);
+    }
+
     unsigned long long get(unsigned long long index) {
       return (index > this->length()-1)?0:this->dec[index];
     }
@@ -79,7 +87,62 @@ class bigDecimal{
       }
       return c;
     }
-
+    
+    /*
+    *   This method returns a shifted big decimal by an index and a chunk and will be used for
+    *   multiplikation. e.g: (1234).shift(1) -> (12340)
+    *                        (1234).shift(-1)->  (1234)
+    */
+    bigDecimal shift(long long index, long long chunks = 0) {
+      std::vector<unsigned long long> newdec;
+      // convert index overshoot or undershoot to chunks
+      chunks += index/bigDecimalLen;
+      index %= bigDecimalLen;
+      // this is used so that the index is allways positive (less cases to deal with)
+      if(index < 0) {
+        index = bigDecimalLen+index;
+        chunks--;
+      }
+      //std::cout << "chunks: " << chunks << "    index: " << index << std::endl;
+      // padd the chunks by filling it with zeros if chunks is positive
+      for(int i = 0; i < chunks; i++) {
+        newdec.push_back(0);
+      }
+      // padd index
+      // get old and init new vars
+      std::vector<unsigned long long> olddec = this->dec;
+      unsigned long long current;
+      // the offset will be used to skip outshifted chunks
+      unsigned long long offset = (chunks<0)?-chunks:0;
+      if (index == 0) {
+        for(int i = offset; i < olddec.size(); i++) {
+          newdec.push_back(olddec[i]);
+        }
+      } else if (index > 0) {
+        // faktorA is a mask to extract the |index| last digits
+        // faktorB is a mask to extract the rest first digits
+        unsigned long long faktorA = std::pow(10,bigDecimalLen-index);
+        unsigned long long faktorB = std::pow(10,index);
+        // partL is will be put into next chunk
+        unsigned long long partL, partR;
+        partL=(offset>0)?olddec[offset-1]/faktorA:0;
+        for(int i = offset; i < olddec.size(); i++) {
+          current = olddec[i];
+          partR = (current%faktorA)*faktorB+partL;
+          partL = current / (faktorA);
+          //std::cout << current << " -> " << partR << std::endl;
+          newdec.push_back(partR);
+        }
+        if (offset < olddec.size() && partL != 0) {
+          newdec.push_back(partL);
+        }
+      }
+      // empty ^= 0
+      if (newdec.size()==0) {
+        newdec.push_back(0);
+      }
+      return bigDecimal(newdec);
+    }
 
     // helper mehods
     void push_back(unsigned long long num){
