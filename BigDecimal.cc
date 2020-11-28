@@ -21,14 +21,12 @@ class bigDecimal{
       int border = number.length();
       int elems = border / bigDecimalLen;
       unsigned long long num;
-      int i = 0;
-      while(i < elems) {
-        num = std::stoull(number.substr(border-(i+1)*bigDecimalLen,bigDecimalLen));
+      int i = 1;
+      while(i <= elems) {
+        num = std::stoull(number.substr(border-i*bigDecimalLen,bigDecimalLen));
         dec.push_back(num);
         i+=1;
       }
-      num = std::stoull(number.substr(0, border-i*bigDecimalLen));
-      dec.push_back(num);
     }
 
     bigDecimal(unsigned long long num) {
